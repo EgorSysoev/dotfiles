@@ -21,6 +21,7 @@ Plug 'tpope/vim-endwise'
 Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-surround'
 Plug 'mattn/emmet-vim'
+Plug 'mhinz/vim-mix-format'
 
 " Async linting
 Plug 'neomake/neomake'
@@ -181,6 +182,10 @@ let g:python_support_python3_requirements = add(get(g:,'python_support_python3_r
 let g:neomake_elixir_enabled_makers = ['credo']
 let g:neomake_go_enabled_makers = ['go']
 let g:neomake_ruby_enabled_makers = ['mri']
+" }}}
+
+" mix-format {{{
+let g:mix_format_on_save = 1
 " }}}
 
 " emmet-vim {{{

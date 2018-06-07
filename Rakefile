@@ -1,4 +1,5 @@
 require 'fileutils'
+require 'etc'
 
 require_relative 'dotfile_list'
 
@@ -8,11 +9,13 @@ task :deps do
     https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim`
 
   # Install homebrew dependencies
-  `brew bundle`
+  if Etc.uname[:version].downcase.include?('darwin')
+    `brew bundle`
+  end
 
   # Install python dependencies
-  `pip install virtualenv tmuxp`
-  `pip3 install virtualenv`
+  `pip install --user virtualenv tmuxp`
+  `pip3 install --user virtualenv`
 end
 
 desc 'Setup/update dotfile symbolic links'

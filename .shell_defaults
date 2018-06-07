@@ -2,6 +2,9 @@
 # ENVIRONMENT VARIABLES #
 #########################
 
+# Determine if we're in WSL distro
+export WSL=`(uname -a | grep -q "Microsoft") && 'true'`
+
 # No brainer, default to Vim
 export EDITOR="vim"
 
@@ -14,7 +17,7 @@ export CLICOLOR="Yes"
 export LSCOLOR=""
 
 # Set Path
-export PATH=$HOME/.bin:$HOME/bin:/usr/local/sbin:/usr/local/bin:/sbin:$PATH
+export PATH=$HOME/.bin:$HOME/bin:$HOME/.local/bin:$HOME/.yarn/bin:/usr/local/sbin:/usr/local/bin:/sbin:$PATH
 
 # GOPATH
 export GOPATH=$HOME/go
@@ -26,6 +29,9 @@ export PATH=$GOBIN:$PATH
 alias gopath="cd $GOPATH"
 alias godir="cd $GODIR"
 alias gosrc="cd $GOPATH/src"
+
+# Elixir/Erlang Configuration
+export ERL_AFLAGS="-kernel shell_history enabled"
 
 # Add Rust/Cargo to the path
 export PATH="$HOME/.cargo/bin:$PATH"
@@ -80,6 +86,13 @@ alias tmk='tmux kill-session -t'
 alias tls='tmux ls'
 alias load='tmuxp load'
 
+# Windows Subsystem for Linux Specific Aliases
+if ($WSL)
+then
+  alias docker='docker.exe'
+  alias docker-compose='docker-compose.exe'
+if
+
 # Docker
 alias de='docker exec'
 alias dclean='docker ps -a -q -f status=exited | xargs -t docker rm'
@@ -105,9 +118,11 @@ dce() {
 
 alias dapp='dce app'
 
-# Expose Docker environment variables by default if `default` machine is running
-if [ "$(docker-machine status default)" == "Running" ]; then
-  eval $(docker-machine env default)
+# Expose Docker environment variables by default if `default` machine is running. Only macOS
+if (uname -a | grep -q 'Darwin'); then
+  if [ "$(docker-machine status default)" == "Running" ]; then
+    eval $(docker-machine env default)
+  fi
 fi
 
 # Flush DNS Cache
@@ -117,6 +132,32 @@ alias dnsflush='dscacheutil -flushcache; sudo killall -HUP mDNSResponder'
 alias r='exec $SHELL'
 
 # Tmux project orchestration
-function rdev() {
+rdev() {
   WORKSPACE=$1 tmuxp load ~/.tmuxp/rails_dev.yaml
 }
+
+if ($WSL)
+then
+  # SSH Agent Setup
+  SSH_ENV=$HOME/.ssh/environment
+  
+  # start the ssh-agent
+  start_agent() {
+      echo "Initializing new SSH agent..."
+      # spawn ssh-agent
+      /usr/bin/ssh-agent | sed 's/^echo/#echo/' > "${SSH_ENV}"
+      echo succeeded
+      chmod 600 "${SSH_ENV}"
+      . "${SSH_ENV}" > /dev/null
+      /usr/bin/ssh-add
+  }
+  
+  if [ -f "${SSH_ENV}" ]; then
+       . "${SSH_ENV}" > /dev/null
+       ps -ef | grep ${SSH_AGENT_PID} | grep ssh-agent$ > /dev/null || {
+          start_agent;
+      }
+  else
+      start_agent;
+  fi
+fi
